@@ -13,11 +13,16 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
+// === TAMBAHAN LIBRARY UNTUK MEMATIKAN BROWNOUT ===
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+// =================================================
+
 // ============================================================
 //  KONFIGURASI JARINGAN & FIREBASE
 // ============================================================
-const char* WIFI_SSID     = "NAMA_WIFI_KAMU";      // Ganti!
-const char* WIFI_PASSWORD = "PASSWORD_WIFI_KAMU";    // Ganti!
+const char* WIFI_SSID     = "Infinix SMART 6";      // WiFi Hotspot HP
+const char* WIFI_PASSWORD = "rtkrtkrtk";            // Password Hotspot
 
 const char* FIREBASE_HOST = "YOUR_PROJECT_ID-default-rtdb.firebaseio.com"; // Ganti!
 const char* FIREBASE_AUTH = "YOUR_FIREBASE_DATABASE_SECRET"; // Ganti!
@@ -58,6 +63,10 @@ bool kirimKeFirebase(const String& path, const String& payload) {
 }
 
 void setup() {
+  // === MEMATIKAN BROWNOUT DETECTOR ===
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+  // ===================================
+
   Serial.begin(115200);
   
   pinMode(PIN_PIR, INPUT);
