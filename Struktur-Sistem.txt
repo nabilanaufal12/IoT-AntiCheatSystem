@@ -1,0 +1,20 @@
+SmartProctor-IoT/
+│
+├── pc_vision/               # ➔ Direktori khusus kodingan Python (PC/Laptop)
+│   ├── venv/                # (Folder Virtual Environment akan otomatis terbuat di sini)
+│   ├── requirements.txt     # Daftar library Python (OpenCV, MediaPipe, dll)
+│   └── deteksi_ujian.py     # Skrip deteksi wajah yang tadi kita buat
+│
+├── esp32_node/              # ➔ Direktori khusus kodingan mikrokontroler (Arduino IDE)
+│   └── esp32_node.ino       # Skrip untuk membaca sensor PIR, Suara & kontrol Buzzer
+│
+├── web_dashboard/           # ➔ Direktori khusus antarmuka pengawas
+│   ├── index.html           # Struktur halaman web
+│   ├── style.css            # Tampilan/desain web
+│   └── app.js               # Logika penarikan data dari Firebase ke Web
+│
+├── docs/                    # ➔ Direktori untuk dokumen tugas
+│   ├── arsitektur.xml       # File Draw.io yang sudah kita buat
+│   └── draf_laporan.md      # Catatan/draf laporan untuk dosen
+│
+└── .gitignore               # File untuk mencegah file sampah/venv ter-upload ke GitHub

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartProctor IoT — Dashboard Pengawas</title>
+  <meta name="description" content="Dashboard monitoring real-time sistem anti-kecurangan ujian berbasis IoT" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!--  HEADER                                                       -->
+  <!-- ============================================================ -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7L12 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>SmartProctor</h1>
+        <span>IoT Anti-Cheat System</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="live-badge" id="live-badge">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+      <div class="session-timer" id="session-timer">00:00:00</div>
+    </div>
+
+    <div class="header-right">
+      <div class="connection-status" id="connection-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">Menghubungkan...</span>
+      </div>
+      <div class="current-time" id="current-time"></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!--  MAIN CONTENT                                                 -->
+  <!-- ============================================================ -->
+  <main class="app-main">
+
+    <!-- Stats Row -->
+    <section class="stats-row" aria-label="Ringkasan Statistik">
+      <div class="stat-card" id="stat-total-peserta">
+        <div class="stat-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="val-total-peserta">—</div>
+          <div class="stat-label">Total Peserta</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger-glow" id="stat-alert-aktif">
+        <div class="stat-icon icon-red">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="val-alert-aktif">—</div>
+          <div class="stat-label">Alert Aktif</div>
+        </div>
+      </div>
+
+      <div class="stat-card" id="stat-sensor-online">
+        <div class="stat-icon icon-cyan">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="val-sensor-online">—</div>
+          <div class="stat-label">Node Online</div>
+        </div>
+      </div>
+
+      <div class="stat-card" id="stat-log-count">
+        <div class="stat-icon icon-amber">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="val-log-count">0</div>
+          <div class="stat-label">Total Log</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid: Monitoring Cards + Activity Log -->
+    <div class="content-grid">
+
+      <!-- Kolom Kiri: Peserta Cards + Node Status -->
+      <div class="left-panel">
+        <div class="panel-header">
+          <h2>Status Peserta</h2>
+          <div class="panel-badge" id="badge-peserta-count">0 peserta</div>
+        </div>
+
+        <!-- Container untuk kartu peserta (diisi oleh JS) -->
+        <div class="peserta-grid" id="peserta-grid">
+          <div class="empty-state" id="empty-peserta">
+            <div class="empty-icon">📡</div>
+            <p>Menunggu data peserta...</p>
+            <small>Pastikan <code>deteksi_ujian.py</code> berjalan</small>
+          </div>
+        </div>
+
+        <!-- Node ESP32 Status -->
+        <div class="panel-header" style="margin-top: 24px;">
+          <h2>Node Sensor (ESP32)</h2>
+          <div class="panel-badge" id="badge-node-count">0 node</div>
+        </div>
+
+        <div class="node-grid" id="node-grid">
+          <div class="empty-state" id="empty-node">
+            <div class="empty-icon">🔌</div>
+            <p>Menunggu data node...</p>
+            <small>Pastikan ESP32 menyala dan terhubung WiFi</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Activity Log -->
+      <div class="right-panel">
+        <div class="panel-header">
+          <h2>Log Aktivitas</h2>
+          <button class="btn-clear" id="btn-clear-log" title="Bersihkan log tampilan">Bersihkan</button>
+        </div>
+
+        <div class="log-container" id="log-container">
+          <div class="log-empty" id="log-empty">
+            <span>Belum ada log aktivitas</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============================================================ -->
+  <!--  FIREBASE SDK                                                 -->
+  <!-- ============================================================ -->
+  <!-- Firebase App (compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Dashboard Logic -->
+  <script src="app.js"></script>
+
+</body>
+</html>

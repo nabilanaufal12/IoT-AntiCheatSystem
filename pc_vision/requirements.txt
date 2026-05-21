@@ -1,0 +1,28 @@
+# SmartProctor IoT - PC Vision Dependencies
+# Cara install: pip install -r requirements.txt
+
+# Core - Deteksi Wajah
+mediapipe==0.10.14
+opencv-python==4.13.0.92
+opencv-contrib-python==4.13.0.92
+numpy==2.4.4
+
+# Firebase Integration
+requests==2.32.3
+
+# Dependencies mediapipe 0.10.14
+absl-py==2.4.0
+attrs==26.1.0
+flatbuffers==25.12.19
+jax==0.10.0
+jaxlib==0.10.0
+ml_dtypes==0.5.4
+opt_einsum==3.4.0
+protobuf==4.25.9
+scipy==1.17.1
+
+# Dependencies lainnya
+certifi==2026.4.22
+matplotlib==3.10.9
+pillow==12.2.0
+sounddevice==0.5.5
