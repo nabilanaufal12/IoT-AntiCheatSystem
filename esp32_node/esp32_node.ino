@@ -27,13 +27,14 @@ const char* WIFI_PASSWORD = "rtkrtkrtk";            // Password Hotspot
 const char* FIREBASE_HOST = "YOUR_PROJECT_ID-default-rtdb.firebaseio.com"; // Ganti!
 const char* FIREBASE_AUTH = "YOUR_FIREBASE_DATABASE_SECRET"; // Ganti!
 
-const char* NODE_ID = "meja_01"; 
+// Samakan NODE_ID dengan yang dituju oleh dashboard (misal node_01)
+const char* NODE_ID = "node_01"; 
 
 // ============================================================
 //  KONFIGURASI PIN HARDWARE (Sesuai Breadboard Kita)
 // ============================================================
 const int PIN_PIR       = 13;   
-const int PIN_SUARA     = 12;   
+const int PIN_SUARA     = 32;   
 const int PIN_BUZZER    = 14;   
 const int PIN_LED_MERAH = 27;   // Opsional
 const int PIN_LED_HIJAU = 26;   // Opsional
@@ -46,6 +47,7 @@ unsigned long timer_update = 0;
 
 bool status_gerak = false;
 bool status_suara = false;
+bool status_buzzer = false;
 int jumlah_alert = 0;
 
 // Fungsi untuk mengirim data ke Firebase
@@ -87,10 +89,14 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\n[WiFi] Terhubung!");
+  Serial.print("[WiFi] IP Address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
+  // Jika WiFi putus, coba hubungkan kembali
   if (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(PIN_LED_HIJAU, LOW);
     WiFi.reconnect();
     return;
   }
@@ -100,13 +106,12 @@ void loop() {
   status_suara = (digitalRead(PIN_SUARA) == HIGH); // Modul KY-037 umumnya HIGH saat berisik
 
   // 2. LOGIKA ALARM
-  bool kondisi_curang = (status_gerak || status_suara);
+  status_buzzer = (status_gerak || status_suara);
 
-  if (kondisi_curang) {
+  if (status_buzzer) {
     digitalWrite(PIN_BUZZER, HIGH);
     digitalWrite(PIN_LED_MERAH, HIGH);
     digitalWrite(PIN_LED_HIJAU, LOW);
-    jumlah_alert++;
   } else {
     digitalWrite(PIN_BUZZER, LOW);
     digitalWrite(PIN_LED_MERAH, LOW);
@@ -117,20 +122,30 @@ void loop() {
   if (millis() - timer_update >= UPDATE_INTERVAL) {
     timer_update = millis();
 
-    // Membuat JSON Payload
+    // Logika penambahan jumlah alert untuk dashboard
+    if (status_buzzer) {
+      jumlah_alert++;
+    }
+
+    // Membuat JSON Payload (Disinkronkan dengan kebutuhan app.js)
     StaticJsonDocument<200> doc;
-    doc["sensor_gerak"] = status_gerak;
-    doc["sensor_suara"] = status_suara;
-    doc["status_alarm"] = kondisi_curang ? "CURANG" : "AMAN";
-    doc["jumlah_alert"] = jumlah_alert;
+    doc["sensor_gerak"]   = status_gerak;
+    doc["sensor_suara"]   = status_suara;
+    doc["buzzer_aktif"]   = status_buzzer;
+    doc["sinyal_wifi"]    = WiFi.RSSI();
+    doc["jumlah_alert"]   = jumlah_alert;
+    doc["status_koneksi"] = "online";
+    doc["uptime_detik"]   = millis() / 1000;
 
     String payload;
     serializeJson(doc, payload);
 
-    bool sukses = kirimKeFirebase("/kelas_a/ujian_1/node/" + String(NODE_ID), payload);
+    // MENGIRIM KE PATH YANG BENAR AGAR TERBACA OLEH DASHBOARD
+    bool sukses = kirimKeFirebase("/SmartProctor/node/" + String(NODE_ID), payload);
     
-    Serial.printf("Gerak: %d | Suara: %d | Alarm: %s | Firebase: %s\n", 
-                  status_gerak, status_suara, kondisi_curang ? "ON" : "OFF", sukses ? "OK" : "FAIL");
+    // Tampilkan di Serial Monitor
+    Serial.printf("Gerak: %d | Suara: %d | Buzzer: %s | Sinyal: %d dBm | Firebase: %s\n", 
+                  status_gerak, status_suara, status_buzzer ? "ON" : "OFF", WiFi.RSSI(), sukses ? "OK" : "FAIL");
   }
 
   delay(100);
