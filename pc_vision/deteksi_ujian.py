@@ -35,11 +35,11 @@ from datetime import datetime
 
 # Firebase Realtime Database URL (dari Firebase Console > Realtime Database)
 # Contoh: "https://smartproctor-abc12-default-rtdb.firebaseio.com"
-FIREBASE_URL  = "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com"
+FIREBASE_URL  = "https://iot-anticheatsystem-default-rtdb.asia-southeast1.firebasedatabase.app"
 
 # Firebase Database Secret
 # Firebase Console > Project Settings > Service Accounts > Database Secrets > Show
-FIREBASE_AUTH = "YOUR_FIREBASE_DATABASE_SECRET"
+FIREBASE_AUTH = "S47nw4xUV6EslppYxVMjAt4VjGuaYFZckt2ForE3"
 
 # ID Peserta yang sedang diawasi PC ini
 PESERTA_ID    = "peserta_01"
