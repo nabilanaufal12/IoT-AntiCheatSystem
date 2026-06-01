@@ -24,11 +24,11 @@
 const char* WIFI_SSID     = "Infinix SMART 6";      // WiFi Hotspot HP
 const char* WIFI_PASSWORD = "rtkrtkrtk";            // Password Hotspot
 
-const char* FIREBASE_HOST = "YOUR_PROJECT_ID-default-rtdb.firebaseio.com"; // Ganti!
-const char* FIREBASE_AUTH = "YOUR_FIREBASE_DATABASE_SECRET"; // Ganti!
+const char* FIREBASE_HOST = "iot-anticheatsystem-default-rtdb.asia-southeast1.firebasedatabase.app"; // Ganti!
+const char* FIREBASE_AUTH = "S47nw4xUV6EslppYxVMjAt4VjGuaYFZckt2ForE3"; // Ganti!
 
 // Samakan NODE_ID dengan yang dituju oleh dashboard (misal node_01)
-const char* NODE_ID = "node_01"; 
+const char* NODE_ID = "node_02"; 
 
 // ============================================================
 //  KONFIGURASI PIN HARDWARE (Sesuai Breadboard Kita)

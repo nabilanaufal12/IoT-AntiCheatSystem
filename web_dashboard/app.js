@@ -13,14 +13,23 @@
 //  KONFIGURASI FIREBASE — ISI SESUAI PROYEKMU
 // ============================================================
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId:             "YOUR_APP_ID",
+
+  apiKey: "AIzaSyCS9ZP6J1GzroyWVTr3iRS9XcTfziITzvg",
+
+  authDomain: "iot-anticheatsystem.firebaseapp.com",
+
+  databaseURL: "https://iot-anticheatsystem-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+  projectId: "iot-anticheatsystem",
+
+  storageBucket: "iot-anticheatsystem.firebasestorage.app",
+
+  messagingSenderId: "950527625460",
+
+  appId: "1:950527625460:web:9f51b4d796e6977d6cf6a1"
+
 };
+
 
 // ============================================================
 //  INISIALISASI
