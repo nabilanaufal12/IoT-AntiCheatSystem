@@ -67,6 +67,12 @@ const elStatAlert     = document.getElementById('stat-alert-aktif');
 const elBtnClear      = document.getElementById('btn-clear-log');
 const elLogEmpty      = document.getElementById('log-empty');
 
+// Control Panel DOM References
+const elCtrlAllowPir    = document.getElementById('ctrl-allow-pir');
+const elCtrlAllowSuara  = document.getElementById('ctrl-allow-suara');
+const elCtrlForceBuzzer = document.getElementById('ctrl-force-buzzer');
+const elCtrlKameraAktif = document.getElementById('ctrl-kamera-aktif');
+
 // ============================================================
 //  UTILITAS
 // ============================================================
@@ -385,6 +391,9 @@ function initFirebase() {
         if (entry) addLogEntry(entry);
       });
 
+    // Inisialisasi panel kontrol two-way
+    initControlPanel();
+
     console.log('[Firebase] ✓ Semua listener aktif');
 
   } catch (err) {
@@ -477,6 +486,132 @@ function startDemoMode() {
       updateStats();
     }
   }, 2000);
+}
+
+// ============================================================
+//  CONTROL PANEL — TWO-WAY CONTROL
+// ============================================================
+
+function initControlPanel() {
+  if (!db) return;
+
+  // ----- REF FIREBASE CONTROL -----
+  const refNodeControl    = db.ref('SmartProctor/control/node_02');
+  const refPesertaControl = db.ref('SmartProctor/control/peserta_01');
+
+  // ----- INISIALISASI DEFAULT VALUES (jika belum ada di Firebase) -----
+  refNodeControl.once('value', snap => {
+    if (!snap.exists()) {
+      refNodeControl.set({
+        allow_pir: true,
+        allow_suara: true,
+        force_buzzer: 'AUTO'
+      });
+      console.log('[Control] Default kontrol node_02 dibuat di Firebase');
+    }
+  });
+
+  refPesertaControl.once('value', snap => {
+    if (!snap.exists()) {
+      refPesertaControl.set({
+        kamera_aktif: true
+      });
+      console.log('[Control] Default kontrol peserta_01 dibuat di Firebase');
+    }
+  });
+
+  // ----- LISTENER: Sinkronkan UI dengan Firebase (agar multi-dashboard sinkron) -----
+  refNodeControl.on('value', snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    // Sync toggle switches tanpa trigger event listener lagi
+    if (typeof data.allow_pir === 'boolean' && elCtrlAllowPir.checked !== data.allow_pir) {
+      elCtrlAllowPir.checked = data.allow_pir;
+    }
+    if (typeof data.allow_suara === 'boolean' && elCtrlAllowSuara.checked !== data.allow_suara) {
+      elCtrlAllowSuara.checked = data.allow_suara;
+    }
+    if (data.force_buzzer && elCtrlForceBuzzer.value !== data.force_buzzer) {
+      elCtrlForceBuzzer.value = data.force_buzzer;
+      updateBuzzerSelectStyle(data.force_buzzer);
+    }
+
+    console.log('[Control] Sinkronisasi kontrol node_02:', data);
+  });
+
+  refPesertaControl.on('value', snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    if (typeof data.kamera_aktif === 'boolean' && elCtrlKameraAktif.checked !== data.kamera_aktif) {
+      elCtrlKameraAktif.checked = data.kamera_aktif;
+    }
+
+    console.log('[Control] Sinkronisasi kontrol peserta_01:', data);
+  });
+
+  // ----- EVENT: Toggle Sensor Gerak (PIR) -----
+  elCtrlAllowPir.addEventListener('change', () => {
+    const val = elCtrlAllowPir.checked;
+    refNodeControl.update({ allow_pir: val });
+    addLogEntry({
+      jenis: 'sistem',
+      pesan: `🎛️ Sensor Gerak (PIR) → ${val ? 'AKTIF' : 'NONAKTIF'}`,
+      timestamp: formatDateTime(new Date()),
+      node_id: 'node_02'
+    });
+    console.log(`[Control] allow_pir → ${val}`);
+  });
+
+  // ----- EVENT: Toggle Sensor Suara -----
+  elCtrlAllowSuara.addEventListener('change', () => {
+    const val = elCtrlAllowSuara.checked;
+    refNodeControl.update({ allow_suara: val });
+    addLogEntry({
+      jenis: 'sistem',
+      pesan: `🎛️ Sensor Suara → ${val ? 'AKTIF' : 'NONAKTIF'}`,
+      timestamp: formatDateTime(new Date()),
+      node_id: 'node_02'
+    });
+    console.log(`[Control] allow_suara → ${val}`);
+  });
+
+  // ----- EVENT: Override Buzzer -----
+  elCtrlForceBuzzer.addEventListener('change', () => {
+    const val = elCtrlForceBuzzer.value;
+    refNodeControl.update({ force_buzzer: val });
+    updateBuzzerSelectStyle(val);
+
+    const modeLabel = val === 'AUTO' ? 'OTOMATIS' : val === 'ON' ? 'PAKSA NYALA' : 'PAKSA MATI';
+    addLogEntry({
+      jenis: 'sistem',
+      pesan: `🎛️ Override Buzzer → ${modeLabel} (${val})`,
+      timestamp: formatDateTime(new Date()),
+      node_id: 'node_02'
+    });
+    console.log(`[Control] force_buzzer → ${val}`);
+  });
+
+  // ----- EVENT: Toggle Kamera Peserta -----
+  elCtrlKameraAktif.addEventListener('change', () => {
+    const val = elCtrlKameraAktif.checked;
+    refPesertaControl.update({ kamera_aktif: val });
+    addLogEntry({
+      jenis: 'sistem',
+      pesan: `🎛️ Kamera peserta_01 → ${val ? 'NYALA' : 'MATI'}`,
+      timestamp: formatDateTime(new Date()),
+      peserta_id: 'peserta_01'
+    });
+    console.log(`[Control] kamera_aktif → ${val}`);
+  });
+
+  console.log('[Control] ✓ Panel kontrol terinisialisasi');
+}
+
+function updateBuzzerSelectStyle(mode) {
+  elCtrlForceBuzzer.classList.remove('buzzer-auto', 'buzzer-on', 'buzzer-off');
+  elCtrlForceBuzzer.classList.add(`buzzer-${mode.toLowerCase()}`);
 }
 
 // ============================================================

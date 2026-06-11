@@ -51,6 +51,9 @@ BATAS_WAKTU_CURANG = 3.0
 # Interval pengiriman data ke Firebase (detik)
 INTERVAL_FIREBASE = 1.0
 
+# Interval polling kontrol dari Firebase (detik)
+INTERVAL_KONTROL = 2.0
+
 # ============================================================
 #  INISIALISASI MEDIAPIPE
 # ============================================================
@@ -71,6 +74,10 @@ state = {
     "durasi_menoleh": 0.0,
     "wajah_terdeteksi": False,
 }
+
+# Kontrol kamera dari dashboard (thread-safe)
+kontrol_lock = threading.Lock()
+kamera_aktif = True  # True = kamera nyala, False = kamera mati (standby)
 
 firebase_berjalan = True  # Flag untuk menghentikan thread Firebase
 
@@ -153,6 +160,42 @@ def thread_firebase():
     print("[Firebase] Status offline dikirim. Thread selesai.")
 
 
+def thread_kontrol_listener():
+    """
+    Thread untuk mendengarkan perintah kontrol dari Dashboard via Firebase.
+    Melakukan HTTP GET polling setiap INTERVAL_KONTROL detik ke:
+      /SmartProctor/control/peserta_01.json
+    Membaca nilai 'kamera_aktif' dan memperbarui variabel global.
+    """
+    global kamera_aktif
+    print(f"[Kontrol] Thread listener dimulai (polling setiap {INTERVAL_KONTROL}s)")
+
+    while firebase_berjalan:
+        try:
+            url = f"{FIREBASE_URL}/SmartProctor/control/{PESERTA_ID}.json?auth={FIREBASE_AUTH}"
+            resp = requests.get(url, timeout=3)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                if data and isinstance(data, dict):
+                    nilai_baru = data.get("kamera_aktif", True)
+
+                    with kontrol_lock:
+                        if kamera_aktif != nilai_baru:
+                            kamera_aktif = nilai_baru
+                            status_str = "NYALA" if nilai_baru else "MATI"
+                            print(f"[Kontrol] ⚡ Perintah diterima: kamera → {status_str}")
+                        else:
+                            kamera_aktif = nilai_baru
+
+        except Exception as e:
+            print(f"[Kontrol] Gagal polling: {e}")
+
+        time.sleep(INTERVAL_KONTROL)
+
+    print("[Kontrol] Thread listener selesai.")
+
+
 # ============================================================
 #  FUNGSI UTILITAS TAMPILAN
 # ============================================================
@@ -202,7 +245,7 @@ def gambar_overlay(image, arah, status, durasi, wajah_ada):
 # ============================================================
 
 def main():
-    global firebase_berjalan
+    global firebase_berjalan, kamera_aktif
 
     # Validasi konfigurasi Firebase
     if "YOUR_PROJECT_ID" in FIREBASE_URL or "YOUR_FIREBASE" in FIREBASE_AUTH:
@@ -222,20 +265,68 @@ def main():
         print("[ERROR] Tidak bisa membuka kamera! Periksa koneksi kamera.")
         return
 
-    # Jalankan thread Firebase
+    # Jalankan thread Firebase (pengirim data)
     if firebase_aktif:
         fb_thread = threading.Thread(target=thread_firebase, daemon=True)
         fb_thread.start()
-        print("[Firebase] Thread berjalan di background.")
+        print("[Firebase] Thread pengirim berjalan di background.")
+
+        # Jalankan thread kontrol listener (penerima perintah)
+        ctrl_thread = threading.Thread(target=thread_kontrol_listener, daemon=True)
+        ctrl_thread.start()
+        print("[Kontrol] Thread listener berjalan di background.")
 
     # Variabel timer kecurangan
     waktu_mulai_menoleh = None
+    # Flag untuk tracking status kamera (agar tahu kapan harus re-open)
+    kamera_sedang_aktif = True
 
     print(f"\n[Sistem] ✓ Deteksi wajah dimulai untuk '{PESERTA_NAMA}'")
     print("[Sistem]   Tekan 'q' untuk keluar.\n")
 
     try:
-        while cap.isOpened():
+        while True:
+            # ── CEK KONTROL KAMERA DARI DASHBOARD ──
+            with kontrol_lock:
+                perintah_kamera = kamera_aktif
+
+            # Jika perintah MATIKAN kamera dan kamera masih aktif
+            if not perintah_kamera and kamera_sedang_aktif:
+                print("\n[Kontrol] 📵 Kamera DIMATIKAN dari dashboard.")
+                print("[Kontrol]    Program standby menunggu perintah nyala...")
+                if cap.isOpened():
+                    cap.release()
+                cv2.destroyAllWindows()
+                kamera_sedang_aktif = False
+
+                # Update state agar Firebase tahu kamera mati
+                with state_lock:
+                    state["status_visual"]    = "Kamera Dimatikan (Remote)"
+                    state["wajah_terdeteksi"] = False
+                    state["level_risiko"]     = 0
+                    state["durasi_menoleh"]   = 0.0
+                    state["arah_wajah"]       = "-"
+
+            # Jika perintah NYALAKAN kamera dan kamera sedang mati
+            if perintah_kamera and not kamera_sedang_aktif:
+                print("\n[Kontrol] 📸 Kamera DINYALAKAN dari dashboard.")
+                cap = cv2.VideoCapture(0)
+                if cap.isOpened():
+                    kamera_sedang_aktif = True
+                    waktu_mulai_menoleh = None  # Reset timer
+                    print("[Kontrol] ✓ Kamera berhasil dibuka kembali.")
+                else:
+                    print("[Kontrol] ✗ Gagal membuka kamera! Coba lagi...")
+
+            # Jika kamera sedang mati → standby loop (hemat CPU)
+            if not kamera_sedang_aktif:
+                # Tetap cek tombol 'q' via waitKey minimal
+                if cv2.waitKey(500) & 0xFF == ord('q'):
+                    print("\n[Sistem] 'q' ditekan saat standby. Menghentikan...")
+                    break
+                continue
+
+            # ── LOOP DETEKSI WAJAH NORMAL ──
             success, image = cap.read()
             if not success:
                 continue
@@ -335,11 +426,13 @@ def main():
 
     finally:
         firebase_berjalan = False
-        cap.release()
+        if cap.isOpened():
+            cap.release()
         cv2.destroyAllWindows()
 
         if firebase_aktif:
             fb_thread.join(timeout=5)
+            ctrl_thread.join(timeout=3)
 
         print("[Sistem] ✓ Program selesai.")
 

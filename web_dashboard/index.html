@@ -94,6 +94,103 @@
       </div>
     </section>
 
+    <!-- ============================================================ -->
+    <!--  CONTROL PANEL (TWO-WAY)                                     -->
+    <!-- ============================================================ -->
+    <section class="control-section" aria-label="Panel Kontrol Perangkat">
+      <div class="panel-header">
+        <h2>🎛️ Panel Kontrol Perangkat</h2>
+        <div class="panel-badge" id="badge-control-status">Remote Control</div>
+      </div>
+
+      <div class="control-grid">
+
+        <!-- Kontrol Node ESP32 (node_02) -->
+        <div class="control-card" id="control-node-02">
+          <div class="control-card-header">
+            <div class="control-card-icon icon-esp">📟</div>
+            <div>
+              <div class="control-card-title">Node ESP32</div>
+              <div class="control-card-subtitle">node_02</div>
+            </div>
+          </div>
+
+          <!-- Toggle: Sensor Gerak (PIR) -->
+          <div class="control-row">
+            <div class="control-label">
+              <span class="control-label-icon">🏃</span>
+              <div>
+                <div class="control-label-text">Sensor Gerak (PIR)</div>
+                <div class="control-label-desc">Aktifkan/nonaktifkan pembacaan sensor PIR</div>
+              </div>
+            </div>
+            <label class="toggle-switch" title="Toggle Sensor Gerak">
+              <input type="checkbox" id="ctrl-allow-pir" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Toggle: Sensor Suara -->
+          <div class="control-row">
+            <div class="control-label">
+              <span class="control-label-icon">🔊</span>
+              <div>
+                <div class="control-label-text">Sensor Suara (KY-037)</div>
+                <div class="control-label-desc">Aktifkan/nonaktifkan pembacaan sensor suara</div>
+              </div>
+            </div>
+            <label class="toggle-switch" title="Toggle Sensor Suara">
+              <input type="checkbox" id="ctrl-allow-suara" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Dropdown: Override Buzzer -->
+          <div class="control-row">
+            <div class="control-label">
+              <span class="control-label-icon">🔔</span>
+              <div>
+                <div class="control-label-text">Override Buzzer</div>
+                <div class="control-label-desc">AUTO = otomatis, ON = paksa nyala, OFF = paksa mati</div>
+              </div>
+            </div>
+            <select id="ctrl-force-buzzer" class="control-select buzzer-auto">
+              <option value="AUTO">AUTO</option>
+              <option value="ON">ON</option>
+              <option value="OFF">OFF</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Kontrol Peserta (peserta_01) -->
+        <div class="control-card" id="control-peserta-01">
+          <div class="control-card-header">
+            <div class="control-card-icon icon-cam">📷</div>
+            <div>
+              <div class="control-card-title">Kamera Peserta</div>
+              <div class="control-card-subtitle">peserta_01</div>
+            </div>
+          </div>
+
+          <!-- Toggle: Kamera Aktif -->
+          <div class="control-row">
+            <div class="control-label">
+              <span class="control-label-icon">🎥</span>
+              <div>
+                <div class="control-label-text">Kamera Aktif</div>
+                <div class="control-label-desc">Matikan/nyalakan kamera deteksi wajah jarak jauh</div>
+              </div>
+            </div>
+            <label class="toggle-switch" title="Toggle Kamera">
+              <input type="checkbox" id="ctrl-kamera-aktif" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- Main Grid: Monitoring Cards + Activity Log -->
     <div class="content-grid">
 
